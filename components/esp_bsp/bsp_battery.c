@@ -113,3 +113,71 @@ void bsp_battery_get_voltage(float *voltage, uint16_t *adc_value)
         }   
     }
 }
+
+
+#define BATTERY_SAMPLES 8
+
+typedef struct {
+    float voltage;
+    float percent;
+} battery_curve_point_t;
+
+/* Single-cell Li-ion discharge curve, ordered from full to empty */
+static const battery_curve_point_t s_li_ion_curve[] = {
+    { 4.20f, 100.0f },
+    { 4.10f,  90.0f },
+    { 4.00f,  79.0f },
+    { 3.90f,  65.0f },
+    { 3.80f,  50.0f },
+    { 3.70f,  32.0f },
+    { 3.60f,  18.0f },
+    { 3.50f,   8.0f },
+    { 3.30f,   0.0f },
+};
+
+static int battery_voltage_to_percent(float v)
+{
+    const size_t n = sizeof(s_li_ion_curve) / sizeof(s_li_ion_curve[0]);
+
+    if (v >= s_li_ion_curve[0].voltage) {
+        return 100;
+    }
+    if (v <= s_li_ion_curve[n - 1].voltage) {
+        return 0;
+    }
+    for (size_t i = 1; i < n; i++) {
+        const battery_curve_point_t *hi = &s_li_ion_curve[i - 1];
+        const battery_curve_point_t *lo = &s_li_ion_curve[i];
+        if (v >= lo->voltage) {
+            float t = (v - lo->voltage) / (hi->voltage - lo->voltage);
+            float pct = lo->percent + t * (hi->percent - lo->percent);
+            return (int)(pct + 0.5f);
+        }
+    }
+    return 0;
+}
+
+int bsp_battery_get_percent(float *out_voltage)
+{
+    float sum = 0.0f;
+
+    for (int i = 0; i < BATTERY_SAMPLES; i++) {
+        /* bsp_battery_get_voltage() leaves *voltage untouched if the ADC is
+         * not calibrated, so start from an invalid value to detect it */
+        float v = -1.0f;
+        bsp_battery_get_voltage(&v, NULL);
+        if (v < 0.0f) {
+            if (out_voltage) {
+                *out_voltage = -1.0f;
+            }
+            return -1;
+        }
+        sum += v;
+    }
+
+    float avg = sum / BATTERY_SAMPLES;
+    if (out_voltage) {
+        *out_voltage = avg;
+    }
+    return battery_voltage_to_percent(avg);
+}

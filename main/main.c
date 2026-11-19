@@ -5,6 +5,7 @@
 #include "bsp_display.h"
 #include "bsp_touch.h"
 #include "bsp_lvgl.h"
+#include "bsp_battery.h"
 #include "bsp_temp.h"
 
 #include "lvgl_ui.h"
@@ -22,6 +23,7 @@ void app_main(void) {
     bsp_display_set_brightness(100);
 
     // Sensors shown on the home screen
+    bsp_battery_init();
     if (bsp_temp_init() != ESP_OK) {
         ESP_LOGW(TAG, "Temperature sensor unavailable, home screen will show --.-");
     }
