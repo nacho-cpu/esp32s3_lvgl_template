@@ -1,2 +1,8 @@
 ui/filelist.txt
 ui/project.info
+
+# SquareLine Studio project bookkeeping
+project.info
+backup/
+cache/
+*_backup*.zip
