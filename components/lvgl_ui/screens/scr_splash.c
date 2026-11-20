@@ -22,6 +22,7 @@ static const char *TAG = "scr_splash";
  * callbacks already registered.
  */
 
+static bool    s_navigating = false;
 static int32_t s_dots_last  = -1;
 
 /* ------------------------------------------------------------------ */
@@ -64,16 +65,67 @@ static void splash_stop(void)
 }
 
 /* ------------------------------------------------------------------ */
+/* Event callbacks                                                     */
+/* ------------------------------------------------------------------ */
+
+static void on_pressed(lv_event_t *e)
+{
+    (void)e;
+    lv_point_t p = { 0 };
+    lv_indev_t *indev = lv_indev_get_act();
+    if (indev) {
+        lv_indev_get_point(indev, &p);
+    }
+    ESP_LOGI(TAG, "touch at (%d, %d)", (int)p.x, (int)p.y);
+
+    /* Visual feedback: dim the logo while the finger is down */
+    lv_obj_set_style_opa(ui_imgLogo, LV_OPA_70, 0);
+}
+
+static void on_released(lv_event_t *e)
+{
+    (void)e;
+    lv_obj_set_style_opa(ui_imgLogo, LV_OPA_COVER, 0);
+}
+
+static void on_clicked(lv_event_t *e)
+{
+    (void)e;
+    if (s_navigating) {
+        return;                     /* guard against double navigation */
+    }
+    s_navigating = true;
+    ESP_LOGI(TAG, "splash -> home");
+    ui_screens_navigate(SCREEN_HOME);
+}
+
+static void on_unload_start(lv_event_t *e)
+{
+    (void)e;
+    splash_stop();
+}
+
+/* ------------------------------------------------------------------ */
 /* Screen controller                                                   */
 /* ------------------------------------------------------------------ */
 
 void scr_splash_prepare(void)
 {
+    /* The whole screen is the touch target: children must not eat the touch */
+    lv_obj_add_flag(ui_scrSplash, LV_OBJ_FLAG_CLICKABLE);
+    lv_obj_clear_flag(ui_imgLogo, LV_OBJ_FLAG_CLICKABLE);
+    lv_obj_clear_flag(ui_lblSplashStatus, LV_OBJ_FLAG_CLICKABLE);
+
+    lv_obj_add_event_cb(ui_scrSplash, on_pressed,      LV_EVENT_PRESSED,             NULL);
+    lv_obj_add_event_cb(ui_scrSplash, on_released,     LV_EVENT_RELEASED,            NULL);
+    lv_obj_add_event_cb(ui_scrSplash, on_clicked,      LV_EVENT_CLICKED,             NULL);
+    lv_obj_add_event_cb(ui_scrSplash, on_unload_start, LV_EVENT_SCREEN_UNLOAD_START, NULL);
 }
 
 void scr_splash_init(void)
 {
     ESP_LOGD(TAG, "init: fade-in + dots");
+    s_navigating = false;
     bsp_display_fade_in(SPLASH_FADE_IN_MS);
     dots_start();
 }
