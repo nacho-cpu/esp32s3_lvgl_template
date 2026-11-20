@@ -22,14 +22,12 @@ static QueueHandle_t s_queue = NULL;
 
 typedef void (*handler_fn_t)(void *data);
 
-/* Placeholder — remove when UI_UPDATE_MAX has real commands */
-#if UI_UPDATE_MAX == 0
-static const handler_fn_t s_handlers[] = { NULL };
-#else
+/* Note: the preprocessor cannot see enum values (it evaluates UI_UPDATE_MAX
+ * as 0), so the table must not be wrapped in an #if on the enum. Unlisted
+ * commands stay NULL and are ignored by ui_update_screens(). */
 static const handler_fn_t s_handlers[UI_UPDATE_MAX] = {
-    /* [UI_UPDATE_TEMPERATURE] = handle_temperature, */
+    [UI_UPDATE_BUTTON_PRESS] = NULL,    /* registered with the input module */
 };
-#endif
 
 /* ------------------------------------------------------------------ */
 
