@@ -12,6 +12,8 @@
 typedef enum {
     SCREEN_SPLASH = 0,
     SCREEN_HOME,
+    SCREEN_SYSTEM,
+    SCREEN_SETTINGS,
     SCREEN_MAX
 } ui_screens_t;
 
@@ -52,6 +54,15 @@ ui_screens_t  ui_screens_get_current(void);
  * but uses the registry, so the lifecycle engine tracks the transition.
  */
 void          ui_screens_navigate(ui_screens_t screen);
+
+/**
+ * Navigate to a screen with a load animation (lv_scr_load_anim, no auto-delete:
+ * every screen is created once by ui_init() and reused).
+ */
+void          ui_screens_navigate_anim(ui_screens_t screen, lv_scr_load_anim_t anim, uint32_t time_ms);
+
+/** Returns the LVGL screen object registered for a screen, or NULL. */
+lv_obj_t     *ui_screens_get_obj(ui_screens_t screen);
 
 /**
  * Signal user activity (touch, encoder …). Resets the LVGL inactivity timer

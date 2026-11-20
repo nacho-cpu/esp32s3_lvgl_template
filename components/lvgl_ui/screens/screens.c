@@ -1,6 +1,8 @@
 #include "screens.h"
 #include "scr_splash.h"
 #include "scr_home.h"
+#include "scr_system.h"
+#include "scr_settings.h"
 #include "ui.h"             /* Squareline export — screen object declarations */
 #include "esp_log.h"
 
@@ -19,8 +21,10 @@ static const char *TAG = "screens";
  * Squareline declares in its generated header (e.g. &ui_Screen1).
  */
 static const screen_config_t screen_configs[SCREEN_MAX] = {
-    [SCREEN_SPLASH] = SCREEN_REGISTER("Splash", ui_scrSplash, splash),
-    [SCREEN_HOME]   = SCREEN_REGISTER("Home",   ui_scrHome,   home),
+    [SCREEN_SPLASH]   = SCREEN_REGISTER("Splash",   ui_scrSplash,   splash),
+    [SCREEN_HOME]     = SCREEN_REGISTER("Home",     ui_scrHome,     home),
+    [SCREEN_SYSTEM]   = SCREEN_REGISTER("System",   ui_scrSystem,   system),
+    [SCREEN_SETTINGS] = SCREEN_REGISTER("Settings", ui_scrSettings, settings),
 };
 
 static ui_screens_t s_active_screen = SCREEN_MAX; /* SCREEN_MAX = "unknown" */
@@ -54,6 +58,20 @@ void ui_screens_navigate(ui_screens_t screen)
     if (cfg->screen_obj && *cfg->screen_obj) {
         lv_disp_load_scr(*cfg->screen_obj);
     }
+}
+
+void ui_screens_navigate_anim(ui_screens_t screen, lv_scr_load_anim_t anim, uint32_t time_ms)
+{
+    lv_obj_t *scr = ui_screens_get_obj(screen);
+    if (scr) {
+        lv_scr_load_anim(scr, anim, time_ms, 0, false);
+    }
+}
+
+lv_obj_t *ui_screens_get_obj(ui_screens_t screen)
+{
+    if (screen >= SCREEN_MAX || !screen_configs[screen].screen_obj) return NULL;
+    return *screen_configs[screen].screen_obj;
 }
 
 void ui_screens_on_activity(void)
