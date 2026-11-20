@@ -8,6 +8,7 @@
 #include "esp_lcd_panel_vendor.h"
 #include "esp_lcd_panel_ops.h"
 #include "esp_log.h"
+#include "lvgl.h"
 
 static const char *TAG = "bsp_display";
 
@@ -90,14 +91,40 @@ void bsp_display_set_brightness(uint8_t brightness)
         brightness = 100;
         ESP_LOGE(TAG, "Brightness value out of range");
     }
+    if (brightness == s_brightness) {
+        return;
+    }
     s_brightness = brightness;
     uint32_t duty = (brightness * (LCD_BL_LEDC_DUTY - 1)) / 100;
     ESP_ERROR_CHECK(ledc_set_duty(LCD_BL_LEDC_MODE, LCD_BL_LEDC_CHANNEL, duty));
     ESP_ERROR_CHECK(ledc_update_duty(LCD_BL_LEDC_MODE, LCD_BL_LEDC_CHANNEL));
-    ESP_LOGI(TAG, "LCD brightness set to %d%%", brightness);
+    ESP_LOGD(TAG, "LCD brightness set to %d%%", brightness);
 }
 
 uint8_t bsp_display_get_brightness(void)
 {
     return s_brightness;
+}
+
+static void fade_exec_cb(void *var, int32_t v)
+{
+    (void)var;
+    bsp_display_set_brightness((uint8_t)v);
+}
+
+void bsp_display_fade_in(uint32_t duration_ms)
+{
+    static uint8_t s_anim_token; /* lv_anim needs a non-NULL var */
+
+    lv_anim_del(&s_anim_token, fade_exec_cb);
+    bsp_display_set_brightness(0);
+
+    lv_anim_t a;
+    lv_anim_init(&a);
+    lv_anim_set_var(&a, &s_anim_token);
+    lv_anim_set_exec_cb(&a, fade_exec_cb);
+    lv_anim_set_values(&a, 0, 100);
+    lv_anim_set_time(&a, duration_ms);
+    lv_anim_set_path_cb(&a, lv_anim_path_ease_out);
+    lv_anim_start(&a);
 }
