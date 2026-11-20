@@ -163,6 +163,7 @@ void scr_home_prepare(void)
     lv_obj_add_event_cb(ui_scrHome, on_load_start, LV_EVENT_SCREEN_LOAD_START, NULL);
     lv_obj_add_event_cb(ui_scrHome, on_loaded,     LV_EVENT_SCREEN_LOADED,     NULL);
     lv_obj_add_event_cb(ui_scrHome, on_unloaded,   LV_EVENT_SCREEN_UNLOADED,   NULL);
+    lv_obj_add_event_cb(ui_scrHome, ui_screens_gesture_cb, LV_EVENT_GESTURE,   NULL);
 }
 
 void scr_home_init(void)

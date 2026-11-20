@@ -11,6 +11,7 @@ static const char *TAG = "scr_settings";
 
 void scr_settings_prepare(void)
 {
+    lv_obj_add_event_cb(ui_scrSettings, ui_screens_gesture_cb, LV_EVENT_GESTURE, NULL);
 }
 
 void scr_settings_init(void)

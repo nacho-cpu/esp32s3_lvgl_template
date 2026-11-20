@@ -68,6 +68,13 @@ void          ui_screens_navigate_anim(ui_screens_t screen, lv_scr_load_anim_t a
 lv_obj_t     *ui_screens_get_obj(ui_screens_t screen);
 
 /**
+ * LV_EVENT_GESTURE handler shared by home, system and settings.
+ * Swipe left -> next screen, swipe right -> previous (HOME <-> SYSTEM <-> SETTINGS,
+ * no wrap-around). Register it in each screen's prepare().
+ */
+void          ui_screens_gesture_cb(lv_event_t *e);
+
+/**
  * Signal user activity (touch, encoder …). Resets the LVGL inactivity timer
  * used by screens_timeout to decide when to dim / turn off the display.
  */
