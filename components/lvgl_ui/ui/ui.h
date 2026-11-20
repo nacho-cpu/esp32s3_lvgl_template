@@ -20,6 +20,8 @@ extern "C" {
 
 #include "screens/ui_scrSplash.h"
 #include "screens/ui_scrHome.h"
+#include "screens/ui_scrSettings.h"
+#include "screens/ui_scrSystem.h"
 
 ///////////////////// VARIABLES ////////////////////
 

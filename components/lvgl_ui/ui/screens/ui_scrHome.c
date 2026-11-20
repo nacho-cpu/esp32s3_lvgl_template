@@ -6,10 +6,13 @@
 #include "../ui.h"
 
 lv_obj_t * ui_scrHome = NULL;
+lv_obj_t * ui_PnlStatus = NULL;
+lv_obj_t * ui_LblStatusIcon = NULL;
+lv_obj_t * ui_LblStatusText = NULL;
 lv_obj_t * ui_ArcBattery = NULL;
-lv_obj_t * ui_LblBatPct = NULL;
+lv_obj_t * ui_LblBatpct = NULL;
+lv_obj_t * ui_LblUpTime = NULL;
 lv_obj_t * ui_LblTemp = NULL;
-lv_obj_t * ui_LblUptime = NULL;
 // event funtions
 
 // build funtions
@@ -19,33 +22,52 @@ void ui_scrHome_screen_init(void)
     ui_scrHome = lv_obj_create(NULL);
     lv_obj_clear_flag(ui_scrHome, LV_OBJ_FLAG_SCROLLABLE);      /// Flags
 
+    ui_PnlStatus = lv_obj_create(ui_scrHome);
+    lv_obj_set_width(ui_PnlStatus, 130);
+    lv_obj_set_height(ui_PnlStatus, 44);
+    lv_obj_set_x(ui_PnlStatus, 80);
+    lv_obj_set_y(ui_PnlStatus, 25);
+    lv_obj_set_align(ui_PnlStatus, LV_ALIGN_CENTER);
+    lv_obj_clear_flag(ui_PnlStatus, LV_OBJ_FLAG_CLICKABLE | LV_OBJ_FLAG_SCROLLABLE);      /// Flags
+
+    ui_LblStatusIcon = lv_label_create(ui_PnlStatus);
+    lv_obj_set_width(ui_LblStatusIcon, LV_SIZE_CONTENT);   /// 1
+    lv_obj_set_height(ui_LblStatusIcon, LV_SIZE_CONTENT);    /// 1
+    lv_obj_set_align(ui_LblStatusIcon, LV_ALIGN_CENTER);
+    lv_label_set_text(ui_LblStatusIcon, "?");
+
+    ui_LblStatusText = lv_label_create(ui_PnlStatus);
+    lv_obj_set_width(ui_LblStatusText, LV_SIZE_CONTENT);   /// 1
+    lv_obj_set_height(ui_LblStatusText, LV_SIZE_CONTENT);    /// 1
+    lv_obj_set_align(ui_LblStatusText, LV_ALIGN_CENTER);
+    lv_label_set_text(ui_LblStatusText, "--\n");
+
     ui_ArcBattery = lv_arc_create(ui_scrHome);
-    lv_obj_set_width(ui_ArcBattery, 140);
-    lv_obj_set_height(ui_ArcBattery, 140);
-    lv_obj_set_x(ui_ArcBattery, -70);
-    lv_obj_set_y(ui_ArcBattery, 0);
+    lv_obj_set_width(ui_ArcBattery, 130);
+    lv_obj_set_height(ui_ArcBattery, 130);
+    lv_obj_set_x(ui_ArcBattery, -75);
+    lv_obj_set_y(ui_ArcBattery, -18);
     lv_obj_set_align(ui_ArcBattery, LV_ALIGN_CENTER);
     lv_arc_set_value(ui_ArcBattery, 50);
 
-    ui_LblBatPct = lv_label_create(ui_ArcBattery);
-    lv_obj_set_width(ui_LblBatPct, LV_SIZE_CONTENT);   /// 1
-    lv_obj_set_height(ui_LblBatPct, LV_SIZE_CONTENT);    /// 1
-    lv_obj_set_align(ui_LblBatPct, LV_ALIGN_CENTER);
-    lv_label_set_text(ui_LblBatPct, "--%");
+    ui_LblBatpct = lv_label_create(ui_ArcBattery);
+    lv_obj_set_width(ui_LblBatpct, LV_SIZE_CONTENT);   /// 1
+    lv_obj_set_height(ui_LblBatpct, LV_SIZE_CONTENT);    /// 1
+    lv_obj_set_align(ui_LblBatpct, LV_ALIGN_CENTER);
+
+    ui_LblUpTime = lv_label_create(ui_scrHome);
+    lv_obj_set_width(ui_LblUpTime, LV_SIZE_CONTENT);   /// 1
+    lv_obj_set_height(ui_LblUpTime, LV_SIZE_CONTENT);    /// 1
+    lv_obj_set_x(ui_LblUpTime, 80);
+    lv_obj_set_y(ui_LblUpTime, -30);
+    lv_obj_set_align(ui_LblUpTime, LV_ALIGN_CENTER);
 
     ui_LblTemp = lv_label_create(ui_scrHome);
     lv_obj_set_width(ui_LblTemp, LV_SIZE_CONTENT);   /// 1
     lv_obj_set_height(ui_LblTemp, LV_SIZE_CONTENT);    /// 1
     lv_obj_set_x(ui_LblTemp, 80);
-    lv_obj_set_y(ui_LblTemp, -30);
+    lv_obj_set_y(ui_LblTemp, 30);
     lv_obj_set_align(ui_LblTemp, LV_ALIGN_CENTER);
-
-    ui_LblUptime = lv_label_create(ui_scrHome);
-    lv_obj_set_width(ui_LblUptime, LV_SIZE_CONTENT);   /// 1
-    lv_obj_set_height(ui_LblUptime, LV_SIZE_CONTENT);    /// 1
-    lv_obj_set_x(ui_LblUptime, 80);
-    lv_obj_set_y(ui_LblUptime, 30);
-    lv_obj_set_align(ui_LblUptime, LV_ALIGN_CENTER);
 
 }
 
@@ -55,9 +77,12 @@ void ui_scrHome_screen_destroy(void)
 
     // NULL screen variables
     ui_scrHome = NULL;
+    ui_PnlStatus = NULL;
+    ui_LblStatusIcon = NULL;
+    ui_LblStatusText = NULL;
     ui_ArcBattery = NULL;
-    ui_LblBatPct = NULL;
+    ui_LblBatpct = NULL;
+    ui_LblUpTime = NULL;
     ui_LblTemp = NULL;
-    ui_LblUptime = NULL;
 
 }

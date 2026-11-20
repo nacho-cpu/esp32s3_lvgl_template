@@ -67,10 +67,10 @@ static void refresh_battery(void)
 
     if (pct >= 0) {
         lv_arc_set_value(ui_ArcBattery, pct);
-        lv_label_set_text_fmt(ui_LblBatPct, "%d%%", pct);
+        lv_label_set_text_fmt(ui_LblBatpct, "%d%%", pct);
     } else {
         lv_arc_set_value(ui_ArcBattery, 0);
-        lv_label_set_text_static(ui_LblBatPct, "--%");
+        lv_label_set_text_static(ui_LblBatpct, "--%");
     }
     battery_set_arc_color(pct);
 }
@@ -91,7 +91,7 @@ static void refresh_temperature(void)
 static void refresh_uptime(void)
 {
     uint64_t s = esp_timer_get_time() / 1000000ULL;
-    lv_label_set_text_fmt(ui_LblUptime, "%02lu:%02lu:%02lu",
+    lv_label_set_text_fmt(ui_LblUpTime, "%02lu:%02lu:%02lu",
                           (unsigned long)(s / 3600),
                           (unsigned long)((s / 60) % 60),
                           (unsigned long)(s % 60));
@@ -154,6 +154,11 @@ void scr_home_prepare(void)
     lv_arc_set_value(ui_ArcBattery, 0);
     lv_obj_remove_style(ui_ArcBattery, NULL, LV_PART_KNOB);   /* no knob */
     lv_obj_clear_flag(ui_ArcBattery, LV_OBJ_FLAG_CLICKABLE);  /* indicator only */
+
+    /* Right column: temperature and uptime above the status panel.
+     * The SquareLine export places LblTemp over PnlStatus, so fix it here. */
+    lv_obj_align(ui_LblTemp,   LV_ALIGN_CENTER, 80, -70);
+    lv_obj_align(ui_LblUpTime, LV_ALIGN_CENTER, 80, -35);
 
     lv_obj_add_event_cb(ui_scrHome, on_load_start, LV_EVENT_SCREEN_LOAD_START, NULL);
     lv_obj_add_event_cb(ui_scrHome, on_loaded,     LV_EVENT_SCREEN_LOADED,     NULL);

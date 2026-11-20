@@ -14,10 +14,13 @@ extern "C" {
 extern void ui_scrHome_screen_init(void);
 extern void ui_scrHome_screen_destroy(void);
 extern lv_obj_t * ui_scrHome;
+extern lv_obj_t * ui_PnlStatus;
+extern lv_obj_t * ui_LblStatusIcon;
+extern lv_obj_t * ui_LblStatusText;
 extern lv_obj_t * ui_ArcBattery;
-extern lv_obj_t * ui_LblBatPct;
+extern lv_obj_t * ui_LblBatpct;
+extern lv_obj_t * ui_LblUpTime;
 extern lv_obj_t * ui_LblTemp;
-extern lv_obj_t * ui_LblUptime;
 // CUSTOM VARIABLES
 
 #ifdef __cplusplus

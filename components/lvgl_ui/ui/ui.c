@@ -35,6 +35,8 @@ void ui_init(void)
     lv_disp_set_theme(dispp, theme);
     ui_scrSplash_screen_init();
     ui_scrHome_screen_init();
+    ui_scrSettings_screen_init();
+    ui_scrSystem_screen_init();
     ui____initial_actions0 = lv_obj_create(NULL);
     lv_disp_load_scr(ui_scrSplash);
 }
@@ -43,4 +45,6 @@ void ui_destroy(void)
 {
     ui_scrSplash_screen_destroy();
     ui_scrHome_screen_destroy();
+    ui_scrSettings_screen_destroy();
+    ui_scrSystem_screen_destroy();
 }
