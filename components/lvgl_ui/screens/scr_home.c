@@ -1,10 +1,15 @@
+#include <stdio.h>
+
 #include "scr_home.h"
 #include "screens.h"
 #include "ui.h"
 #include "bsp_battery.h"
+#include "bsp_temp.h"
 #include "esp_log.h"
 
 static const char *TAG = "scr_home";
+
+#define HOME_REFRESH_MS 1000
 
 /*
  * Lifecycle
@@ -12,9 +17,13 @@ static const char *TAG = "scr_home";
  * The home screen is driven by LVGL screen events instead of the engine's
  * init()/uninit() hooks:
  *   LV_EVENT_SCREEN_LOAD_START -> refresh_all()   (never show placeholder text)
+ *   LV_EVENT_SCREEN_LOADED     -> create the 1 s refresh lv_timer
+ *   LV_EVENT_SCREEN_UNLOADED   -> delete the timer
  * Unlike the splash, home is never the first screen, so these events always
  * fire after prepare() has registered the callbacks.
  */
+
+static lv_timer_t *s_timer = NULL;
 
 /* ------------------------------------------------------------------ */
 /* Widgets                                                             */
@@ -34,19 +43,58 @@ static void refresh_battery(void)
     }
 }
 
+static void refresh_temperature(void)
+{
+    float c = 0.0f;
+    if (bsp_temp_get_celsius(&c) == ESP_OK) {
+        /* LV_SPRINTF_USE_FLOAT is off, so format floats with libc snprintf */
+        char buf[16];
+        snprintf(buf, sizeof buf, "%.1f \xC2\xB0" "C", c);
+        lv_label_set_text(ui_LblTemp, buf);
+    } else {
+        lv_label_set_text_static(ui_LblTemp, "--.- \xC2\xB0" "C");
+    }
+}
+
 static void refresh_all(void)
 {
     refresh_battery();
+    refresh_temperature();
 }
 
 /* ------------------------------------------------------------------ */
-/* Screen events                                                     */
+/* Timer and screen events                                             */
 /* ------------------------------------------------------------------ */
+
+static void home_timer_cb(lv_timer_t *timer)
+{
+    (void)timer;
+    refresh_all();
+}
 
 static void on_load_start(lv_event_t *e)
 {
     (void)e;
     refresh_all();
+}
+
+static void on_loaded(lv_event_t *e)
+{
+    (void)e;
+    if (s_timer == NULL) {
+        s_timer = lv_timer_create(home_timer_cb, HOME_REFRESH_MS, NULL);
+        ESP_LOGD(TAG, "refresh timer started");
+    }
+}
+
+static void on_unloaded(lv_event_t *e)
+{
+    (void)e;
+    if (s_timer != NULL) {
+        lv_timer_del(s_timer);
+        s_timer = NULL;
+        ESP_LOGD(TAG, "refresh timer stopped");
+    }
 }
 
 /* ------------------------------------------------------------------ */
@@ -66,6 +114,8 @@ void scr_home_prepare(void)
     lv_obj_clear_flag(ui_ArcBattery, LV_OBJ_FLAG_CLICKABLE);  /* indicator only */
 
     lv_obj_add_event_cb(ui_scrHome, on_load_start, LV_EVENT_SCREEN_LOAD_START, NULL);
+    lv_obj_add_event_cb(ui_scrHome, on_loaded,     LV_EVENT_SCREEN_LOADED,     NULL);
+    lv_obj_add_event_cb(ui_scrHome, on_unloaded,   LV_EVENT_SCREEN_UNLOADED,   NULL);
 }
 
 void scr_home_init(void)
