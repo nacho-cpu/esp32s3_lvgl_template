@@ -20,7 +20,8 @@ void app_main(void) {
     bsp_touch_init(i2c_bus);
     ESP_ERROR_CHECK(bsp_lvgl_init());
     bsp_display_brightness_init();
-    bsp_display_set_brightness(100);
+    // Start with the backlight off: the splash screen fades it in
+    bsp_display_set_brightness(0);
 
     // Sensors shown on the home screen
     bsp_battery_init();
