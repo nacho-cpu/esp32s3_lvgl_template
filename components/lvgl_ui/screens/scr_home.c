@@ -30,6 +30,36 @@ static lv_timer_t *s_timer = NULL;
 /* Widgets                                                             */
 /* ------------------------------------------------------------------ */
 
+typedef enum {
+    BAT_LEVEL_UNKNOWN = -1,
+    BAT_LEVEL_LOW,      /* < 20 % or no reading */
+    BAT_LEVEL_MID,      /* 20..50 %             */
+    BAT_LEVEL_HIGH,     /* > 50 %               */
+} bat_level_t;
+
+static void battery_set_arc_color(int pct)
+{
+    static bat_level_t s_last_level = BAT_LEVEL_UNKNOWN;
+
+    bat_level_t level;
+    if (pct > 50) {
+        level = BAT_LEVEL_HIGH;
+    } else if (pct >= 20) {
+        level = BAT_LEVEL_MID;
+    } else {
+        level = BAT_LEVEL_LOW;          /* includes pct < 0 (no reading) */
+    }
+    if (level == s_last_level) {
+        return;                         /* only restyle when the band changes */
+    }
+    s_last_level = level;
+
+    lv_palette_t palette = (level == BAT_LEVEL_HIGH) ? LV_PALETTE_GREEN
+                         : (level == BAT_LEVEL_MID)  ? LV_PALETTE_AMBER
+                                                     : LV_PALETTE_RED;
+    lv_obj_set_style_arc_color(ui_ArcBattery, lv_palette_main(palette), LV_PART_INDICATOR);
+}
+
 static void refresh_battery(void)
 {
     float v = -1.0f;
@@ -42,6 +72,7 @@ static void refresh_battery(void)
         lv_arc_set_value(ui_ArcBattery, 0);
         lv_label_set_text_static(ui_LblBatPct, "--%");
     }
+    battery_set_arc_color(pct);
 }
 
 static void refresh_temperature(void)
