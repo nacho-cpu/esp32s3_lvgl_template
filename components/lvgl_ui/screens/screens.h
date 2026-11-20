@@ -3,6 +3,9 @@
 
 #include "lvgl.h"
 
+/** Duration of the animated screen transitions (swipe and nav bar). */
+#define UI_SCREENS_ANIM_MS 250
+
 #define SCREEN_REGISTER(name, scr, fn_name) { name, &scr, scr_##fn_name##_prepare, scr_##fn_name##_init, scr_##fn_name##_uninit, scr_##fn_name##_step }
 
 /**

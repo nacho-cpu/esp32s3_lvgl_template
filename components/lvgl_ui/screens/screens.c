@@ -4,6 +4,7 @@
 #include "scr_system.h"
 #include "scr_settings.h"
 #include "ui_input.h"
+#include "nav_bar.h"
 #include "ui.h"             /* Squareline export — screen object declarations */
 #include "esp_log.h"
 
@@ -96,6 +97,7 @@ void ui_screens_step(void)
             }
             ui_input_focus_screen(current);
         }
+        nav_bar_set_active(current);    /* hides the bar on the splash */
         s_active_screen = current;
     }
 
