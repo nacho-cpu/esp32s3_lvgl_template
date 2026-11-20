@@ -1,4 +1,5 @@
 #include "screens_update.h"
+#include "ui_input.h"
 #include "lvgl.h"
 #include "freertos/FreeRTOS.h"
 #include "freertos/queue.h"
@@ -22,11 +23,17 @@ static QueueHandle_t s_queue = NULL;
 
 typedef void (*handler_fn_t)(void *data);
 
+static void handle_button_press(void *data)
+{
+    (void)data;
+    ui_input_push_enter();
+}
+
 /* Note: the preprocessor cannot see enum values (it evaluates UI_UPDATE_MAX
  * as 0), so the table must not be wrapped in an #if on the enum. Unlisted
  * commands stay NULL and are ignored by ui_update_screens(). */
 static const handler_fn_t s_handlers[UI_UPDATE_MAX] = {
-    [UI_UPDATE_BUTTON_PRESS] = NULL,    /* registered with the input module */
+    [UI_UPDATE_BUTTON_PRESS] = handle_button_press,
 };
 
 /* ------------------------------------------------------------------ */
