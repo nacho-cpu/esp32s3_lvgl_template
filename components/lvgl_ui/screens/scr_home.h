@@ -1,8 +1,8 @@
-#ifndef __SCR_MAIN_H__
-#define __SCR_MAIN_H__
+#ifndef __SCR_HOME_H__
+#define __SCR_HOME_H__
 
 /**
- * Main screen controller.
+ * Home screen controller.
  *
  * Convention for all screen controllers:
  *   prepare()  — called once at startup; register persistent event callbacks
@@ -13,11 +13,12 @@
  *   step()     — called every ~20 ms while active; poll sensors, drive
  *                incremental animations, handle encoder input.
  *
- * All four are optional (registered as NULL in screens.c skips the call).
+ * All four run inside the LVGL timer context (see lvgl_ui.c), so they may
+ * call lv_* functions directly.
  */
-void scr_main_prepare(void);
-void scr_main_init(void);
-void scr_main_uninit(void);
-void scr_main_step(void);
+void scr_home_prepare(void);
+void scr_home_init(void);
+void scr_home_uninit(void);
+void scr_home_step(void);
 
 #endif
