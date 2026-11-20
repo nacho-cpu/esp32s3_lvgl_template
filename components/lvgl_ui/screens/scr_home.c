@@ -5,6 +5,7 @@
 #include "ui.h"
 #include "bsp_battery.h"
 #include "bsp_temp.h"
+#include "esp_timer.h"
 #include "esp_log.h"
 
 static const char *TAG = "scr_home";
@@ -56,10 +57,20 @@ static void refresh_temperature(void)
     }
 }
 
+static void refresh_uptime(void)
+{
+    uint64_t s = esp_timer_get_time() / 1000000ULL;
+    lv_label_set_text_fmt(ui_LblUptime, "%02lu:%02lu:%02lu",
+                          (unsigned long)(s / 3600),
+                          (unsigned long)((s / 60) % 60),
+                          (unsigned long)(s % 60));
+}
+
 static void refresh_all(void)
 {
     refresh_battery();
     refresh_temperature();
+    refresh_uptime();
 }
 
 /* ------------------------------------------------------------------ */
