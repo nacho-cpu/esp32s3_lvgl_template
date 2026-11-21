@@ -75,6 +75,12 @@ lv_obj_t     *ui_screens_get_obj(ui_screens_t screen);
 void          ui_screens_gesture_cb(lv_event_t *e);
 
 /**
+ * Short visual feedback: fade obj's opacity 50 % -> 100 % in 200 ms.
+ * Used as acknowledgement of the physical button. LVGL context only.
+ */
+void          ui_screens_flash(lv_obj_t *obj);
+
+/**
  * Signal user activity (touch, encoder …). Resets the LVGL inactivity timer
  * used by screens_timeout to decide when to dim / turn off the display.
  */

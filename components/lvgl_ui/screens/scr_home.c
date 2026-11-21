@@ -12,6 +12,10 @@ static const char *TAG = "scr_home";
 
 #define HOME_REFRESH_MS 1000
 
+/* Chip temperature thresholds for the status indicator */
+#define HOME_TEMP_ALERT_C     50.0f   /* >= alert    */
+#define HOME_TEMP_CRITICAL_C  65.0f   /* >= critical */
+
 /*
  * Lifecycle
  * ---------
@@ -75,10 +79,58 @@ static void refresh_battery(void)
     battery_set_arc_color(pct);
 }
 
+/* ------------------------------------------------------------------ */
+/* Status indicator                                                    */
+/* ------------------------------------------------------------------ */
+
+typedef enum {
+    STATUS_UNKNOWN = -1,
+    STATUS_NO_DATA,
+    STATUS_NORMAL,
+    STATUS_ALERT,
+    STATUS_CRITICAL,
+} home_status_t;
+
+typedef struct {
+    const char   *icon;
+    const char   *text;
+    lv_palette_t  palette;
+} status_style_t;
+
+static const status_style_t s_status_styles[] = {
+    [STATUS_NO_DATA]  = { LV_SYMBOL_CLOSE,   "Sin dato", LV_PALETTE_GREY  },
+    [STATUS_NORMAL]   = { LV_SYMBOL_OK,      "Normal",   LV_PALETTE_GREEN },
+    [STATUS_ALERT]    = { LV_SYMBOL_WARNING, "Alerta",   LV_PALETTE_AMBER },
+    [STATUS_CRITICAL] = { LV_SYMBOL_WARNING, "Critico",  LV_PALETTE_RED   },
+};
+
+static void status_set(bool valid, float celsius)
+{
+    static home_status_t s_last = STATUS_UNKNOWN;
+
+    home_status_t st = !valid                          ? STATUS_NO_DATA
+                     : (celsius >= HOME_TEMP_CRITICAL_C) ? STATUS_CRITICAL
+                     : (celsius >= HOME_TEMP_ALERT_C)    ? STATUS_ALERT
+                                                         : STATUS_NORMAL;
+    if (st == s_last) {
+        return;                         /* only restyle when the state changes */
+    }
+    s_last = st;
+
+    const status_style_t *sty = &s_status_styles[st];
+    lv_color_t color = lv_palette_main(sty->palette);
+    lv_label_set_text_static(ui_LblStatusIcon, sty->icon);
+    lv_label_set_text_static(ui_LblStatusText, sty->text);
+    lv_obj_set_style_text_color(ui_LblStatusIcon, color, 0);
+    lv_obj_set_style_border_color(ui_PnlStatus, color, 0);
+}
+
 static void refresh_temperature(void)
 {
     float c = 0.0f;
-    if (bsp_temp_get_celsius(&c) == ESP_OK) {
+    bool ok = (bsp_temp_get_celsius(&c) == ESP_OK);
+    status_set(ok, c);
+    if (ok) {
         /* LV_SPRINTF_USE_FLOAT is off, so format floats with libc snprintf */
         char buf[16];
         snprintf(buf, sizeof buf, "%.1f \xC2\xB0" "C", c);
@@ -112,6 +164,17 @@ static void home_timer_cb(lv_timer_t *timer)
 {
     (void)timer;
     refresh_all();
+}
+
+/** Physical button: refresh now and restart the 1 s period. */
+static void on_key(lv_event_t *e)
+{
+    if (lv_event_get_key(e) != LV_KEY_ENTER) return;
+    refresh_all();
+    if (s_timer) {
+        lv_timer_reset(s_timer);
+    }
+    ui_screens_flash(ui_PnlStatus);
 }
 
 static void on_load_start(lv_event_t *e)
@@ -160,6 +223,16 @@ void scr_home_prepare(void)
     lv_obj_align(ui_LblTemp,   LV_ALIGN_CENTER, 80, -70);
     lv_obj_align(ui_LblUpTime, LV_ALIGN_CENTER, 80, -35);
 
+    /* Status panel: icon + text in a row (layout not set in the export) */
+    lv_obj_set_flex_flow(ui_PnlStatus, LV_FLEX_FLOW_ROW);
+    lv_obj_set_flex_align(ui_PnlStatus, LV_FLEX_ALIGN_CENTER,
+                          LV_FLEX_ALIGN_CENTER, LV_FLEX_ALIGN_CENTER);
+    lv_obj_set_style_pad_all(ui_PnlStatus, 4, 0);
+    lv_obj_set_style_pad_column(ui_PnlStatus, 8, 0);
+    lv_obj_set_style_border_width(ui_PnlStatus, 2, 0);
+    lv_obj_clear_flag(ui_PnlStatus, LV_OBJ_FLAG_SCROLLABLE);
+
+    lv_obj_add_event_cb(ui_scrHome, on_key,        LV_EVENT_KEY,               NULL);
     lv_obj_add_event_cb(ui_scrHome, on_load_start, LV_EVENT_SCREEN_LOAD_START, NULL);
     lv_obj_add_event_cb(ui_scrHome, on_loaded,     LV_EVENT_SCREEN_LOADED,     NULL);
     lv_obj_add_event_cb(ui_scrHome, on_unloaded,   LV_EVENT_SCREEN_UNLOADED,   NULL);

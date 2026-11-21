@@ -112,6 +112,27 @@ void ui_screens_gesture_cb(lv_event_t *e)
     lv_indev_wait_release(indev);   /* one swipe = one navigation */
 }
 
+#define UI_FLASH_MS 200
+
+static void flash_exec_cb(void *obj, int32_t v)
+{
+    lv_obj_set_style_opa((lv_obj_t *)obj, (lv_opa_t)v, 0);
+}
+
+void ui_screens_flash(lv_obj_t *obj)
+{
+    if (!obj) return;
+    lv_anim_del(obj, flash_exec_cb);
+
+    lv_anim_t a;
+    lv_anim_init(&a);
+    lv_anim_set_var(&a, obj);
+    lv_anim_set_exec_cb(&a, flash_exec_cb);
+    lv_anim_set_values(&a, LV_OPA_50, LV_OPA_COVER);
+    lv_anim_set_time(&a, UI_FLASH_MS);
+    lv_anim_start(&a);
+}
+
 void ui_screens_on_activity(void)
 {
     lv_disp_trig_activity(lv_disp_get_default());
