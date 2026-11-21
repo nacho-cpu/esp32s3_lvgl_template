@@ -21,6 +21,14 @@ static const char *TAG = "scr_system";
 
 static lv_timer_t *s_timer = NULL;
 
+/*
+ * Resettable minimum free heap. esp_get_minimum_free_heap_size() is the
+ * minimum since boot and cannot be reset, so track our own: sampled every
+ * second by a timer that runs even while this screen is hidden, and reset to
+ * the current free heap by the physical button.
+ */
+static uint32_t s_heap_min = UINT32_MAX;
+
 /* ------------------------------------------------------------------ */
 /* Labels                                                              */
 /* ------------------------------------------------------------------ */
@@ -56,11 +64,20 @@ static void fill_static_info(void)
     }
 }
 
+static void heap_min_sample(void)
+{
+    uint32_t free_now = esp_get_free_heap_size();
+    if (free_now < s_heap_min) {
+        s_heap_min = free_now;
+    }
+}
+
 static void refresh_dynamic(void)
 {
     lv_label_set_text_fmt(ui_LblCpuFreq, "CPU: %d MHz", esp_clk_cpu_freq() / 1000000);
     lv_label_set_text_fmt(ui_LblHeapFree, "Heap libre: %" PRIu32 " KB",
                           esp_get_free_heap_size() / 1024);
+    lv_label_set_text_fmt(ui_LblHeapMin, "Heap minimo: %" PRIu32 " KB", s_heap_min / 1024);
 }
 
 /* ------------------------------------------------------------------ */
@@ -70,9 +87,20 @@ static void refresh_dynamic(void)
 static void system_timer_cb(lv_timer_t *timer)
 {
     (void)timer;
+    heap_min_sample();          /* always, so the minimum is never missed */
     if (ui_screens_get_current() == SCREEN_SYSTEM) {
         refresh_dynamic();
     }
+}
+
+/** Physical button: reset the heap minimum to the current free heap. */
+static void on_key(lv_event_t *e)
+{
+    if (lv_event_get_key(e) != LV_KEY_ENTER) return;
+    s_heap_min = esp_get_free_heap_size();
+    ESP_LOGI(TAG, "heap minimum reset to %" PRIu32 " bytes", s_heap_min);
+    refresh_dynamic();
+    ui_screens_flash(ui_LblHeapMin);
 }
 
 /* ------------------------------------------------------------------ */
@@ -105,16 +133,19 @@ void scr_system_prepare(void)
     lv_obj_move_to_index(ui_LblFlash,    5);
 
     fill_static_info();
+    heap_min_sample();
     refresh_dynamic();
 
     s_timer = lv_timer_create(system_timer_cb, SYSTEM_REFRESH_MS, NULL);
 
+    lv_obj_add_event_cb(ui_scrSystem, on_key, LV_EVENT_KEY, NULL);
     lv_obj_add_event_cb(ui_scrSystem, ui_screens_gesture_cb, LV_EVENT_GESTURE, NULL);
 }
 
 void scr_system_init(void)
 {
     ESP_LOGD(TAG, "init");
+    heap_min_sample();
     refresh_dynamic();          /* do not wait up to 1 s for fresh values */
 }
 
