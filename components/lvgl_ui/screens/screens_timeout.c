@@ -9,6 +9,7 @@ static const char *TAG = "screens_timeout";
 static uint32_t s_timeout_to_main_ms = TIMEOUT_NEVER;
 static uint32_t s_timeout_to_off_ms  = TIMEOUT_NEVER;
 static bool     s_display_on         = true;
+static uint8_t  s_saved_brightness   = 100;  /* user brightness before turning off */
 
 void disp_timeout_init(uint32_t timeout_to_main_ms, uint32_t timeout_to_off_ms)
 {
@@ -35,7 +36,8 @@ void disp_timeout_step(void)
         /* Any new activity wakes the display */
         if (inactive_ms < 100) {
             s_display_on = true;
-            bsp_display_set_brightness(100);
+            /* Restore the user's brightness (settings slider), not a fixed 100 % */
+            bsp_display_set_brightness(s_saved_brightness ? s_saved_brightness : 100);
             ESP_LOGD(TAG, "display on");
         }
         return;
@@ -44,6 +46,7 @@ void disp_timeout_step(void)
     /* Display-off timeout */
     if (s_timeout_to_off_ms != TIMEOUT_NEVER && inactive_ms >= s_timeout_to_off_ms) {
         s_display_on = false;
+        s_saved_brightness = bsp_display_get_brightness();
         bsp_display_set_brightness(0);
         ESP_LOGD(TAG, "display off");
         return;
