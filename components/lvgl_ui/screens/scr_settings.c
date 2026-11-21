@@ -11,6 +11,10 @@ static const char *TAG = "scr_settings";
 
 void scr_settings_prepare(void)
 {
+    /* Dragging the slider (or the switch) horizontally must not change screen */
+    lv_obj_clear_flag(ui_Slider1,   LV_OBJ_FLAG_GESTURE_BUBBLE);
+    lv_obj_clear_flag(ui_SwTimeout, LV_OBJ_FLAG_GESTURE_BUBBLE);
+
     lv_obj_add_event_cb(ui_scrSettings, ui_screens_gesture_cb, LV_EVENT_GESTURE, NULL);
 }
 
